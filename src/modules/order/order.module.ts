@@ -7,7 +7,7 @@ import { ProductModule } from '../product/product.module';
 import { ORDER_REPOSITORY } from './domain/order.repository';
 import { InMemoryOrderRepository } from './infrastructure/persistence/order.in-memory.repository';
 import { CreateOrderUseCase } from './application/use-cases/create-order.use-case';
-import { OrderController } from './presentation/order.controller';
+import { OrderController } from './infrastructure/presentation/order.controller';
 
 /**
  * OrderModule importa UserModule y ProductModule para que NestJS
@@ -25,4 +25,4 @@ import { OrderController } from './presentation/order.controller';
   ],
   controllers: [OrderController],
 })
-export class OrderModule {}
+export class OrderModule { }

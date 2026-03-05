@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 
 import { USER_REPOSITORY } from '../../../user/domain/user.repository';
@@ -9,6 +9,12 @@ import { ORDER_REPOSITORY } from '../../domain/order.repository';
 import type { OrderRepository } from '../../domain/order.repository';
 import { Order, OrderLine } from '../../domain/order.entity';
 import { CreateOrderDto, CreateOrderResult } from '../dtos/create-order.dto';
+import {
+  UserNotFoundException,
+  UserNotActiveException,
+  ProductNotFoundException,
+  InsufficientStockException,
+} from '../../domain/exceptions';
 
 /**
  * Un único caso de uso coordina tres repositorios de dominios distintos.
@@ -32,10 +38,10 @@ export class CreateOrderUseCase {
     // 1. Verificar que el usuario existe y cumple reglas de negocio (dominio User)
     const user = await this.userRepo.findById(dto.userId);
     if (!user) {
-      throw new NotFoundException(`Usuario ${dto.userId} no encontrado`);
+      throw new UserNotFoundException(dto.userId);
     }
     if (!user.canPlaceOrder()) {
-      throw new ForbiddenException(`El usuario ${user.name} no está activo y no puede crear órdenes`);
+      throw new UserNotActiveException(user.name);
     }
 
     // 2. Cargar todos los productos en una sola consulta (dominio Product)
@@ -48,12 +54,10 @@ export class CreateOrderUseCase {
     for (const line of dto.lines) {
       const product = productMap.get(line.productId);
       if (!product) {
-        throw new NotFoundException(`Producto ${line.productId} no encontrado`);
+        throw new ProductNotFoundException(line.productId);
       }
       if (!product.hasStock(line.quantity)) {
-        throw new BadRequestException(
-          `Stock insuficiente para "${product.name}": disponible ${product.stock}, solicitado ${line.quantity}`,
-        );
+        throw new InsufficientStockException(product.name, product.stock, line.quantity);
       }
       orderLines.push({
         productId: product.id,
