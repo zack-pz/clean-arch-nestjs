@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { OrderModule } from './modules/order/order.module';
 
+/**
+ * AppModule solo compone módulos de alto nivel.
+ * No registra repositorios ni casos de uso directamente.
+ */
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [OrderModule],
 })
 export class AppModule {}
